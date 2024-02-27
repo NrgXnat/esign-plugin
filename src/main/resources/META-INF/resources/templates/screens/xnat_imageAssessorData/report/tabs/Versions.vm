@@ -1,0 +1,86 @@
+##Copyright 2012 Radiologics, Inc
+##Developer: Tim Olsen tim@radiologics.com
+<!-- ignore: false -->
+<!-- Sequence: 30 -->
+<script type="text/javascript" src="$content.getURI("scripts/esig/corrections.js")"></script>
+#set($versions=$data.getSession().getAttribute("userHelper").getQueryResultsAsArrayList("SELECT ID,label,version,status,insert_date,original FROM xnat_experimentData expt LEFT JOIN xnat_experimentData_meta_data meta ON expt.experimentData_info=meta.meta_data_id WHERE (original='$om.getId()' OR id='$om.getId()') OR (original='$om.getOriginal()' OR id='$om.getOriginal()') ORDER BY version DESC"))
+
+<style type="text/css">
+    #versionDIV .versionItem, #versionDIV .header {
+	  border-bottom:1px solid #888;
+	  font:11px Arial, Helvetica, sans-serif;
+	  margin-top:0;
+	  margin-bottom:0;
+	  padding: 4px;
+	  overflow:auto;
+	}
+	dl.versionItem, item.versionItem {
+		display:block;
+	}
+	#versionDIV dl dl 	{ margin:1px 0;	}
+	#versionDIV .header {
+		background-color: #ccc;
+		font-weight: bold;
+	}
+	#versionDIV dl dt, #versionDIV dl dd {
+		display:block;
+		float:left;
+		padding:4px 0;
+	}
+	.versionItem:hover {
+		background-color:#fe9;
+	}
+	#versionDIV dd 	{ 	margin-left:20px; }
+	dt.versionIcon 	{	width:16px; height:16px;	}
+	dd.versionEntry 	{	width:240px; font-weight:bold; position:relative;	}
+	dd.versionNumber 	{	width:40px;	}
+	dd.versionDate 	{	width:120px;	}
+</style>
+<div id="versionDIV">
+            <dl class="header">
+              <dl>
+                  <dt class="versionIcon"></dt>
+                  <dd class="versionEntry">Entry</dd>
+                  <dd class="versionNumber">Version</dd>
+                  <dd class="versionDate">Versioned</dd>
+                  #if($user.checkFeature($om,"Rollback") && ($om.getItem().getStatus() == 'active'))
+                      <dd class="versionNumber">Action</dd>
+                  #end
+              </dl>
+            </dl>
+            #foreach($version in $versions)
+            #if($velocityCount == 1)
+                 <dl class="versionItem">
+                    <dt class="versionIcon"></dt>
+                    <dd class="versionEntry"><a href="$content.getURI("/data/experiments/$!version.get(0)?format=html")">(current)</a></dd>
+                    <dd class="versionNumber">$!version.get(2)&nbsp;</dd>
+                    <dd class="versionDate"> </dd>
+                    #if($user.checkFeature($om,"Rollback") && ($om.getItem().getStatus() == 'active'))
+                        <dd class="versionNumber">&nbsp;</dd>
+                    #end
+
+                </dl>
+            #else
+                 <dl class="versionItem">
+                    <dt class="versionIcon"></dt>
+                    <dd class="versionEntry"><a href="$content.getURI("/data/experiments/$!version.get(0)?format=html")">#if($!version.get(1)) $!version.get(1) #else $!version.get(0) #end</a></dd>
+                    <dd class="versionNumber">$!version.get(2)&nbsp;</dd>
+                    <dd class="versionDate">$!turbineUtils.formatDateTime($!version.get(4))</dd>
+                    #if($user.checkFeature($om,"Rollback") && ($om.getItem().getStatus() == 'active'))
+                        <dd class="versionNumber"><input class ='rollbackbutton' id='rollbackbutton' type="button" ONCLICK="XNAT.app.corrections.rollback('$!version.get(3)',$!om.getVersion(),$!version.get(2));" value="Rollback"/></dd>
+                    #end
+                    </dl>
+            #end
+        #end
+</div>
+            
+<script>
+XNAT.app.corrections.data_type='$om.getXSIType()';
+XNAT.app.corrections.expt_id='$!om.getId()';
+XNAT.app.corrections.visit_id='$!om.getVisitId()';
+XNAT.app.corrections.expt_label='$!om.getLabel()';
+XNAT.app.corrections.subject_id='$!om.getSubjectId()';
+XNAT.app.corrections.subject_label='$!om.getSubjectData().getLabel()';
+XNAT.app.corrections.reupload_redirect='$!siteConfig.getProperty("esignReuploadRedirect")'
+XNAT.app.corrections.project='$!project';
+</script>

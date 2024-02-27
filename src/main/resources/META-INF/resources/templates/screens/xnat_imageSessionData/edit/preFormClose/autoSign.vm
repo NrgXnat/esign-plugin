@@ -1,0 +1,45 @@
+##Copyright 2012 Radiologics, Inc
+##Developer: Tim Olsen tim@radiologics.com
+#if(!$turbineUtils.toBoolean($siteConfig.getProperty("esignDisableAutoSign","false")))
+	<input type="hidden" id="esign" name="esign" value=""/>
+	#set($user=$data.getSession().getAttribute("user"))
+	#set($query=$user.checkFeature($om,"query-tracker"))
+	<div id="esig_testament" style="display:none">$siteConfig.getProperty("esig.testament","I ({firstname} {lastname}) certify that this data set is complete and accurate.").replace("{username}",$user.getLogin()).replace("{firstname}",$user.getFirstname()).replace("{lastname}",$user.getLastname())</div>
+	<div id="esig_username" style="display:none">$user.getLogin()</div>##these will be used within esig.js
+	<script type="text/javascript" src="$content.getURI('scripts/esig/esig.js')"></script>
+	<script>
+	var myForm=YUIDOM.get("form1");
+	var formSigner={form:myForm,validate:function(){ 
+		if(YUIDOM.get("esign").value=="" && '$query' == 'false'){
+			var justification=new XNAT.app.esig.requestEsig("lock_","E-Sign",function(){
+				//function to respond to E-Sign form submission (and restart wider form submission)
+				YUIDOM.get("esign").value="true";
+				
+				if(YUIDOM.get("form1").managedSubmit()){
+					YUIDOM.get("form1").submit();
+				}
+			},this.form);
+			
+			return false;
+		}else{
+			return true;
+		}
+	}};
+
+	function validateConfirm(){
+		var confirm=jq("#checkboxconfirmandupload");
+		if(confirm!=null && confirm !=undefined){
+			if(!confirm.is(':checked')){
+				return false;
+			}else{
+				return true;
+			}
+		}else{
+			return true;
+		}
+	}
+	YAHOO.util.Event.onDOMReady(function(){
+		_addFormValidation(formSigner);
+	});
+	</script>
+#end

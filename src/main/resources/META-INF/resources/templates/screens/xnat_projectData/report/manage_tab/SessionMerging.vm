@@ -1,0 +1,62 @@
+##Copyright 2018 Radiologics, Inc
+##Developer: James Dickson james@radiologics.com
+##Site wide configuration tab for the Query Tracker
+#* @vtlvariable name="displayManager" type="org.nrg.xdat.display.DisplayManager" *#
+
+<!-- Title: sessionmerging -->
+<h3>Session Merging</h3>
+<div>
+    <table id="cr_visit_table">
+        <tr>
+            <td colspan="2" class="highlighted" id="cr_visit_container">
+                <div id="sessionmerging_mgmt_div">
+                    <p>
+                        <label for="sessionmerging_uid_mod">Enable StudyInstanceUID merging</label>
+                        <input type="checkbox" id="sessionmerging_uid_mod"/>
+                        <small>Allow StudyInstanceUID modifications when merging sessions.</small>
+                    </p>
+                </div>
+                <div class="buttons">
+                    <input type="button" class="submit" value="Save" name="eventSubmit_doPerform" id="sessionmerging_save_button" onclick="XNAT.app.sessionMergingUpdate();"/>&nbsp;
+                </div>
+            </td>
+        </tr>
+    </table>
+    
+    <script type="text/javascript">
+    XNAT.app.sessionMergingUpdate=function(){
+        this.sessionmerging_uid_mod=YUIDOM.get("sessionmerging_uid_mod").checked;
+
+        openModalPanel('sessionMerging','Saving Session Merging Configuration');
+        YAHOO.util.Connect.asyncRequest('PUT',serverRoot+"/data/projects/$project.getId()/config/sessionmerging/script?status=enabled&inbody=true&content=JSON&XNAT_CSRF=" + window.csrfToken,  
+            {
+                success : function(){
+                    closeModalPanel('sessionMerging');
+                    showMessage("page_body","Update","Session Merging Configuration updated successfully");
+                },
+                failure: function(){
+                    closeModalPanel('sessionMerging');
+                    showMessage("page_body","Failure","Failed to store updated Session Merging Configuration");
+                },
+                cache:false, // Turn off caching for IE
+                scope: this
+            }, YAHOO.lang.JSON.stringify({"sessionmerging_uid_mod":this.sessionmerging_uid_mod}));
+    }
+    XNAT.app.sessionMergingLoad=function(obj){
+        try{
+            var results = YAHOO.lang.JSON.parse(obj.responseText);
+            var config = results.ResultSet.Result[0]; // TODO: This is way too trusting. There should be validation here.
+            var enabled = config.status && (config.status == 'enabled' || config.status == 'true');
+            XNAT.app.sessionMerging= YAHOO.lang.JSON.parse(config.contents);
+            if(XNAT.app.sessionMerging.sessionmerging_uid_mod!=undefined){
+                var sessionmerging_uid_mod = config.status && (XNAT.app.sessionMerging.sessionmerging_uid_mod == 'enabled' || XNAT.app.sessionMerging.sessionmerging_uid_mod == true);
+                YUIDOM.get("sessionmerging_uid_mod").checked=sessionmerging_uid_mod
+            }
+        }catch(o){
+            alert(o);
+        }
+    }
+  
+    YAHOO.util.Connect.asyncRequest('GET', serverRoot+'/data/projects/$project.getId()/config/sessionmerging/script?format=json', {success : XNAT.app.sessionMergingLoad, failure : function(){}, cache : false, scope : this});
+    </script>
+</div>

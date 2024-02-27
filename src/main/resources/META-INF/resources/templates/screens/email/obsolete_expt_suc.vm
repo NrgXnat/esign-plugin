@@ -1,0 +1,12 @@
+$expt.getLabel() was successfully deleted.  The data will continue to be accessible via the item's Audit Trail.
+<br>
+<br>Project: $!expt.getProjectDisplayID()
+<br>Subject: $!expt.getSubjectData().getLabel()
+<br>Session: $!expt.getLabel()
+#if($justification)
+	<br>
+	Justification: $!justification
+#end
+<br><br>
+<a href="$server/data/experiments/$expt.getId()?format=html">Click here</a> to review the details.
+<br><br>For support, contact the <a href="mailto:$admin_email?subject=$system Assistance">$system Management </A>

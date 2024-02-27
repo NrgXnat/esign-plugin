@@ -1,0 +1,116 @@
+/*
+ * build.gradle
+ * Copyright 2018 Radiologics, Inc
+ * Developer: James Ransford
+ */
+ 
+import org.gradle.internal.jvm.Jvm
+def pluginName = 'esign_plugin'
+def groupName = 'com.radiologics'
+def pluginVersion = '1.0.0-SNAPSHOT'
+
+group groupName
+version pluginVersion
+
+apply plugin: 'java'
+apply plugin: 'maven'
+apply plugin: "maven-publish"
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+apply plugin: 'io.spring.dependency-management'
+apply plugin: 'com.github.jk1.dependency-license-report'
+
+
+buildscript {
+    ext {
+        vXnat = "1.7.7-INTERNAL"
+    }
+    repositories {
+        maven { url "https://plugins.gradle.org/m2/" }
+        mavenLocal()
+        maven { url "https://nrgxnat.jfrog.io/nrgxnat/libs-release" }
+        maven { url "https://nrgxnat.jfrog.io/nrgxnat/libs-snapshot" }
+        mavenCentral()
+    }
+    dependencies {
+        classpath "io.spring.gradle:dependency-management-plugin:1.0.6.RELEASE"
+    	classpath 'com.github.jk1:gradle-license-report:1.16'
+    }
+}
+
+//
+//
+// JAVA 7 Compatibility
+//
+//
+
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+
+// For the next line to work, you need to add this as the first line (other than comments) of your build.gradle file:
+def javaVersion = Jvm.current().javaVersion
+if (javaVersion.java8Compatible || javaVersion.java9Compatible) {
+    if (hasProperty("rt.17.jar")) {
+        // Solution for bootstrap classpath warning and possible issues with compatibility with 1.7 libraries
+        // was taken from this post on discuss.gradle.org: http://bit.ly/24xD9j0
+        def rt17jar = getProperty("rt.17.jar")
+        logger.info "Using ${rt17jar} as the bootstrap class path jar."
+        gradle.projectsEvaluated {
+            tasks.withType(JavaCompile) {
+                options.fork = true
+                options.compilerArgs << "-XDignore.symbol.file"
+                options.bootClasspath = rt17jar
+            }
+        }
+    } else {
+        logger.warn "No value was set for the rt.17.jar build property, using the default bootstrap class path. You should consider setting rt.17.jar to indicate a jar file containing the Java 1.7 run-time library:\n"
+        logger.warn "  ./gradlew -Prt.17.jar=rt-1.7.0_45.jar war\n"
+    }
+}
+
+repositories {
+    mavenLocal()
+    maven { url "https://nrgxnat.jfrog.io/nrgxnat/libs-release" }
+    maven { url "https://nrgxnat.jfrog.io/nrgxnat/libs-snapshot" }
+    mavenCentral()
+}
+
+dependencyManagement.imports {
+    mavenBom "org.nrg:parent:${vXnat}"
+}
+
+dependencies {
+    implementation ("org.nrg.xnat:web"){
+        exclude group: '*'
+    }
+    
+    implementation ("org.nrg.xdat:core"){
+        exclude group: '*'
+    }
+
+    implementation "org.nrg.xnat:xnat-data-models"
+    implementation "commons-collections:commons-collections"
+    implementation "commons-io:commons-io"
+    implementation "javax.mail:javax.mail-api"
+    implementation "org.springframework:spring-jdbc"
+    
+}
+
+publishing {
+	publications {
+		maven(MavenPublication) {
+			groupId = groupName
+			artifactId = pluginName
+			version = pluginVersion
+			from components.java
+		}
+	}
+}
+
+idea {
+    module {
+        inheritOutputDirs = false
+        outputDir = compileJava.destinationDir
+        testOutputDir = compileTestJava.destinationDir
+    }
+}

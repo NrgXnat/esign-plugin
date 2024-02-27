@@ -1,0 +1,6 @@
+$expt.getLabel() was unsuccessfully deleted.  The data should be reviewed to verify integrity.
+<br><br>
+Justification: $!justification
+<br>
+<a href="$server/data/experiments/$expt.getId()?format=html">Click here</a> to review the details.
+<br><br>For support, contact the <a href="mailto:$admin_email?subject=$system Assistance">$system Management </A>

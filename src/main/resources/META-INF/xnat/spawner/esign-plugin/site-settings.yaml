@@ -1,0 +1,38 @@
+#
+# Copyright 2019 Radiologics, Inc
+# Developer: James Ransford ransfordj@radiologics.com
+#
+sessionmerging_uid_mod:
+    kind: panel.input.switchbox
+    name: sessionmerging_uid_mod
+    id: sessionmerging_uid_mod
+    label: Enable StudyInstanceUID merging
+    description: Allow StudyInstanceUID modifications when merging sessions.
+    
+esignSettingsTab:
+    kind: tab
+    name: esignSettingsTab
+    label: Esign
+    group: crPluginsTabGroup
+    contents:
+        esignSettingsForm:
+            kind: panel.form
+            name: esignSettingsForm
+            label: Esign Settings
+            method: POST
+            url: /xapi/siteConfig
+            contentType: json
+            contents:
+                ${sessionmerging_uid_mod}
+
+# Group these settings with other XNAT CR feature settings
+siteSettings:
+    kind: tabs
+    name:  xnatCRSettings
+    label: XNAT-CR Settings
+    meta:
+        tabGroups:
+            crPluginsTabGroup: XNAT-CR Settings
+    contains: tabs
+    tabs:
+        ${esignSettingsTab}

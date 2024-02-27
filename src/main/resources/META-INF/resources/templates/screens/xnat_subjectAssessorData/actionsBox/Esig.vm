@@ -1,0 +1,90 @@
+##Copyright 2012 Radiologics, Inc
+##Developer: Tim Olsen tim@radiologics.com
+
+<!-- Sequence: 40 -->
+<style type="text/css">
+#esig_div{
+	display:block;
+	font-weight:500;
+	font-size:13px;
+	color:#084FAB;
+}
+</style>
+<script type="text/javascript" src="$content.getURI('scripts/esig/esig.js')"></script>
+<script>
+		 XNAT.app.esig.EXPT_ID='$om.getId()';
+</script>
+
+<div id="esig_testament" style="display:none">$siteConfig.getProperty("esig.testament","I ({firstname} {lastname}) certify that this data set is complete and accurate.").replace("{username}",$user.getLogin()).replace("{firstname}",$user.getFirstname()).replace("{lastname}",$user.getLastname())</div>
+<div id="esig_username" style="display:none">$user.getLogin()</div>##these will be used within esig.js
+
+
+#if($om.getItem().getStatus()=="active")
+	#if($om.canEdit($user))
+	   #if(!$user.checkFeature($om,"query-tracker"))
+       <li class="yuimenuitem">
+        <a class="yuimenuitemlabel" href="" onclick="XNAT.app.esig.lock();return false;">E-Sign</A>
+       </li>
+       #end
+	#end
+#elseif($om.getItem().getStatus()=="locked")
+<script>
+		 if(YUIDOM.get("esig_div")==undefined){
+			if(YUIDOM.get("report_title")!=undefined){
+				var _d=document.createElement("DIV");
+				_d.id="esig_div";
+				YUIDOM.insertAfter(_d,"report_title");
+				YUIDOM.addClass(_d,"message");
+			}else{
+				var _d=document.createElement("DIV");
+				_d.id="esig_div";
+				YUIDOM.insertBefore(_d,YUIDOM.getFirstChild("layout_content"));
+				YUIDOM.addClass(_d,"message");
+			}
+		 }
+		 
+		 if(YUIDOM.get("esig_div")!=undefined){
+		 	#set($last_esign=$data.getSession().getAttribute("userHelper").getQueryResultsAsArrayList("SELECT wrk.justification, u.login, u.firstname, u.lastname, launch_time FROM wrk_workflowData wrk LEFT JOIN wrk_workflowData_meta_data meta ON wrk.workflowData_info=meta.meta_data_id LEFT JOIN xdat_user u ON meta.insert_user_xdat_user_id=u.xdat_user_id WHERE id='$om.getId()' AND pipeline_name='E-signed' ORDER BY launch_time DESC LIMIT 1;"))
+			#if($last_esign.size()>0)
+			YUIDOM.get("esig_div").innerHTML="Signed $!turbineUtils.formatDateTime($last_esign.get(0).get(4)) by $!last_esign.get(0).get(2) $!last_esign.get(0).get(3) <br/> <div style='margin-left:20px;margin-top:6px;'>$!last_esign.get(0).get(0)</div>";
+			#end
+		 }
+		 
+		 
+YAHOO.util.Event.onDOMReady(function(){
+	XNAT.app.esig.showUnlock();
+});
+</script>
+#elseif($om.getItem().getStatus()=="obsolete")
+<script>
+		 if(YUIDOM.get("copy_div")==undefined){
+			if(YUIDOM.get("report_title")!=undefined){
+				var _d=document.createElement("DIV");
+				_d.id="copy_div";
+				YUIDOM.insertAfter(_d,"report_title");
+				YUIDOM.addClass(_d,"error");
+			}else{
+				var _d=document.createElement("DIV");
+				_d.id="esig_div";
+				YUIDOM.insertBefore(_d,YUIDOM.getFirstChild("layout_content"));
+				YUIDOM.addClass(_d,"error");
+			}
+		 }
+		 
+		 #if($om.getOriginal())
+			#set($old_label=$data.getSession().getAttribute("userHelper").getQueryResultsAsArrayList("SELECT COALESCE(label,id) AS old_label FROM xnat_experimentData WHERE id='$!om.getOriginal()'").get(0).get(0))
+    		 if(YUIDOM.get("copy_div")!=undefined){
+    			YUIDOM.get("copy_div").innerHTML='This record is an obsolete version of <a href="$content.getURI("/data/experiments/$!om.getOriginal()?format=html")">$!old_label</a> made on $!turbineUtils.formatDateTime($om.getItem().getActivationDate()) by $!om.getItem().getActivationUser().getFirstname() $!om.getItem().getActivationUser().getLastname()';
+    		 }
+		 #else
+		 	if(YUIDOM.get("copy_div")!=undefined){
+    			YUIDOM.get("copy_div").innerHTML='This record has been deleted.';
+    		 }
+		 #end
+		 
+YAHOO.util.Event.onDOMReady(function(){
+	XNAT.app.esig.showUnlock();
+});
+</script>
+#end
+

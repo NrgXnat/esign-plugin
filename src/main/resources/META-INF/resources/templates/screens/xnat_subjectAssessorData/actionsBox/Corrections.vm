@@ -1,0 +1,131 @@
+##Copyright 2012 Radiologics, Inc
+##Developer: Tim Olsen tim@radiologics.com
+<!-- Sequence: 50 -->
+#if(!$user.checkFeature($om,"query-tracker"))
+#if($om.canEdit($user) && $om.getItem().getStatus() == 'locked')
+		<style type="text/css">
+			div.correction_modal_div{
+			}
+			div.corr_text{
+				width:250px;
+				color:black;
+				background-color:#F2F2F2;
+				line-height:15px;
+			}
+			div.corr_a{
+				float:left;
+			}
+			a.esign-button-img-alt {
+				background-color:#d9561f;
+				display:inline-block;
+				margin-right:20px;
+				line-height:0;
+			}
+			a.esign-button-img-alt:hover {
+				background-color:#e07547;
+			}
+			.esign-button-img-alt img {
+				border:0px;
+			}
+		</style>
+       <li class="yuimenuitem">
+        <a class="yuimenuitemlabel" href="" onclick="XNAT.app.correction_dialog.render(document.body);XNAT.app.correction_dialog.show();YUIDOM.get('corr_a_1').blur();return false;">Repair Session</A>
+       </li>
+		<div id="correction_dialog" style="visibility:hidden"> 
+    	    <div class="hd">Repair Session</div> 
+    	    <div class="bd" style="padding:30px">
+				<script type="text/javascript" src="$content.getURI("scripts/esig/corrections.js")"></script>
+				<div class="corr_a">
+    				<a id="corr_a_1" class=" esign-button-img-alt"  href="javascript:return false;" onclick="XNAT.app.corrections.reupload('$!om.getItem().getStatus()');">
+                		<img src="$content.getURI("images/reupload-session-trans.png")" border="0">
+    					<div class="corr_text"><b>WARNING</b>: This option will replace all uploaded image data.</div>
+    				</a>
+				</div>
+				<div class="corr_a">
+                	<a class="esign-button-img-alt" href="javascript:return false;" style="" onclick="XNAT.app.corrections.modify('$!om.getItem().getStatus()');">
+                		<img class="correction_modal_img" src="$content.getURI("images/edit-session-trans.png")" border="0">
+    					<div class="corr_text">This option will allow you to change information about the session, and/or allow you to assign it to a different subject.</div>
+    				</a>
+				</div>
+				<div class="corr_a">
+                	<a class="esign-button-img-alt" href="javascript:return false;" onclick="XNAT.app.corrections.obsolete();">
+                		<img class="correction_modal_img" src="$content.getURI("images/delete-session-trans.png")" border="0">
+    					<div class="corr_text"><b>WARNING</b>: This option will remove this session from the system.</div>
+    				</a>
+				</div>
+				<div style="padding-top:20px;clear:both;">Note: all changes, including deleted session, are recorded in the system audit trail and may be inspected for quality assurance purposes.</div>
+			</div> 
+    	</div> 
+<script>
+XNAT.app.corrections.data_type='$om.getXSIType()';
+XNAT.app.corrections.expt_id='$!om.getId()';
+XNAT.app.corrections.visit_id='$!om.getVisitId()';
+XNAT.app.corrections.expt_label='$!om.getLabel()';
+XNAT.app.corrections.subject_id='$!om.getSubjectId()';
+XNAT.app.corrections.subject_label='$!om.getSubjectData().getLabel()';
+XNAT.app.corrections.project='$!project';
+XNAT.app.corrections.reupload_redirect='$!siteConfig.getProperty("esignReuploadRedirect")'
+XNAT.app.correction_dialog = new YAHOO.widget.Panel("correction_dialog", { fixedcenter:true, visible:false, width:"890px", height:"400px", modal:true, close:true, draggable:true } ); 
+</script>
+#end
+#end
+#if($om.canDelete($user) && $om.getItem().getStatus() == 'obsolete')
+<style type="text/css">
+	div.correction_modal_div{
+	}
+	div.corr_text{
+		width:250px;
+		color:black;
+		background-color:#F2F2F2;
+		line-height:15px;
+	}
+	div.corr_a{
+		float:left;
+	}
+	a.esign-button-img-alt {
+		background-color:#d9561f;
+		display:inline-block;
+		margin-right:20px;
+		line-height:0;
+	}
+	a.esign-button-img-alt:hover {
+		background-color:#e07547;
+	}
+	.esign-button-img-alt img {
+		border:0px;
+	}
+</style>
+<li class="yuimenuitem">
+	<a class="yuimenuitemlabel" href="" onclick="XNAT.app.correction_dialog.render(document.body);XNAT.app.correction_dialog.show();YUIDOM.get('corr_a_1').blur();return false;">Repair Session</A>
+</li>
+<div id="correction_dialog" style="visibility:hidden">
+	<div class="hd">Repair Session</div>
+	<div class="bd" style="padding:30px">
+		<script type="text/javascript" src="$content.getURI("scripts/esig/corrections.js")"></script>
+		<div class="corr_a">
+			<a id="corr_a_1" class=" esign-button-img-alt"  href="javascript:return false;" onclick="XNAT.app.corrections.reupload('$!om.getItem().getStatus()');">
+				<img src="$content.getURI("images/reupload-session-trans.png")" border="0">
+				<div class="corr_text"><b>WARNING</b>: This option will replace all uploaded image data.</div>
+			</a>
+		</div>
+		<div class="corr_a">
+			<a class="esign-button-img-alt" href="javascript:return false;" style="" onclick="XNAT.app.corrections.modify('$!om.getItem().getStatus()');">
+				<img class="correction_modal_img" src="$content.getURI("images/edit-session-trans.png")" border="0">
+				<div class="corr_text">This option will allow you to change information about the session, and/or allow you to assign it to a different subject.</div>
+			</a>
+		</div>
+		<div style="padding-top:20px;clear:both;">Note: all changes, including deleted session, are recorded in the system audit trail and may be inspected for quality assurance purposes.</div>
+	</div>
+</div>
+<script>
+	XNAT.app.corrections.data_type='$om.getXSIType()';
+	XNAT.app.corrections.expt_id='$!om.getId()';
+	XNAT.app.corrections.visit_id='$!om.getVisitId()';
+	XNAT.app.corrections.expt_label='$!om.getLabel()';
+	XNAT.app.corrections.subject_id='$!om.getSubjectId()';
+	XNAT.app.corrections.subject_label='$!om.getSubjectData().getLabel()';
+	XNAT.app.corrections.project='$!project';
+	XNAT.app.corrections.reupload_redirect='$!siteConfig.getProperty("esignReuploadRedirect")'
+	XNAT.app.correction_dialog = new YAHOO.widget.Panel("correction_dialog", { fixedcenter:true, visible:false, width:"600px", height:"420px", modal:true, close:true, draggable:true } );
+</script>
+#end

@@ -4,10 +4,9 @@
  * Developer: James Ransford
  */
  
-import org.gradle.internal.jvm.Jvm
 def pluginName = 'esign_plugin'
 def groupName = 'com.radiologics'
-def pluginVersion = '1.0.0-SNAPSHOT'
+def pluginVersion = '1.1.0-SNAPSHOT'
 
 group groupName
 version pluginVersion
@@ -23,7 +22,7 @@ apply plugin: 'com.github.jk1.dependency-license-report'
 
 buildscript {
     ext {
-        vXnat = "1.7.7-INTERNAL"
+        vXnat = "1.9.0-RC-SNAPSHOT"
     }
     repositories {
         maven { url "https://plugins.gradle.org/m2/" }
@@ -38,35 +37,8 @@ buildscript {
     }
 }
 
-//
-//
-// JAVA 7 Compatibility
-//
-//
-
-sourceCompatibility = 1.7
-targetCompatibility = 1.7
-
-// For the next line to work, you need to add this as the first line (other than comments) of your build.gradle file:
-def javaVersion = Jvm.current().javaVersion
-if (javaVersion.java8Compatible || javaVersion.java9Compatible) {
-    if (hasProperty("rt.17.jar")) {
-        // Solution for bootstrap classpath warning and possible issues with compatibility with 1.7 libraries
-        // was taken from this post on discuss.gradle.org: http://bit.ly/24xD9j0
-        def rt17jar = getProperty("rt.17.jar")
-        logger.info "Using ${rt17jar} as the bootstrap class path jar."
-        gradle.projectsEvaluated {
-            tasks.withType(JavaCompile) {
-                options.fork = true
-                options.compilerArgs << "-XDignore.symbol.file"
-                options.bootClasspath = rt17jar
-            }
-        }
-    } else {
-        logger.warn "No value was set for the rt.17.jar build property, using the default bootstrap class path. You should consider setting rt.17.jar to indicate a jar file containing the Java 1.7 run-time library:\n"
-        logger.warn "  ./gradlew -Prt.17.jar=rt-1.7.0_45.jar war\n"
-    }
-}
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 repositories {
     mavenLocal()

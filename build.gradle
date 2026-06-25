@@ -6,10 +6,9 @@
  
 def pluginName = 'esign_plugin'
 def groupName = 'com.radiologics'
-def pluginVersion = '1.1.0-SNAPSHOT'
 
 group groupName
-version pluginVersion
+version "1.1.0-SNAPSHOT"
 
 apply plugin: 'java'
 apply plugin: "maven-publish"
@@ -104,7 +103,7 @@ publishing {
 		maven(MavenPublication) {
 			groupId = groupName
 			artifactId = pluginName
-			version = pluginVersion
+			version = project.version
 			from components.java
 		}
 	}

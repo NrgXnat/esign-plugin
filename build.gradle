@@ -6,23 +6,20 @@
  
 def pluginName = 'esign_plugin'
 def groupName = 'com.radiologics'
-def pluginVersion = '1.1.0-SNAPSHOT'
 
 group groupName
-version pluginVersion
+version "1.1.0-SNAPSHOT"
 
 apply plugin: 'java'
-apply plugin: 'maven'
 apply plugin: "maven-publish"
 apply plugin: 'eclipse'
 apply plugin: 'idea'
 apply plugin: 'io.spring.dependency-management'
-apply plugin: 'com.github.jk1.dependency-license-report'
 
 
 buildscript {
     ext {
-        vXnat = "1.9.0-RC-SNAPSHOT"
+        vXnat = "1.10.1-SNAPSHOT"
     }
     repositories {
         maven { url "https://plugins.gradle.org/m2/" }
@@ -32,13 +29,14 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath "io.spring.gradle:dependency-management-plugin:1.0.6.RELEASE"
-    	classpath 'com.github.jk1:gradle-license-report:1.16'
+        classpath "io.spring.gradle:dependency-management-plugin:1.1.7"
     }
 }
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
 
 repositories {
     mavenLocal()
@@ -60,12 +58,44 @@ dependencies {
         exclude group: '*'
     }
 
-    implementation "org.nrg.xnat:xnat-data-models"
+    // xnat-data-models merged into xnat-web in monorepo 1.10
     implementation "commons-collections:commons-collections"
     implementation "commons-io:commons-io"
     implementation "javax.mail:javax.mail-api"
     implementation "org.springframework:spring-jdbc"
-    
+    implementation "org.nrg:framework"
+    implementation "org.apache.commons:commons-lang3"
+    implementation "org.restlet:org.restlet"
+    implementation "org.nrg:config"
+    implementation "org.nrg:mail"
+    implementation "log4j:log4j:1.2.17"
+    annotationProcessor "org.nrg:framework"
+
+    // Compile-only deps that xnat-web no longer surfaces on consumer compileClasspath in monorepo 1.10.1+
+    implementation("turbine:turbine") {
+        exclude group: "commons-dbcp"
+        exclude group: "commons-email"
+        exclude group: "commons-pool"
+        exclude group: "fulcrum"
+        exclude group: "javax.activation", module: "activation"
+        exclude group: "javax.mail"
+        exclude group: "javax.servlet"
+        exclude group: "jython"
+        exclude group: "xalan"
+        exclude group: "xml-apis"
+        exclude group: "log4j", module: "log4j"
+        exclude group: "berkeleydb"
+        exclude group: "javax.sql"
+        exclude group: "jndi"
+        exclude group: "mysql"
+        exclude group: "tomcat"
+        exclude group: "xerces"
+        exclude group: "velocity", module: "texen"
+        exclude group: "jamon", module: "jamon"
+    }
+    compileOnly("org.apache.velocity:velocity") { transitive = false }
+    compileOnly "javax.servlet:javax.servlet-api"
+    compileOnly "ecs:ecs"
 }
 
 publishing {
@@ -73,8 +103,23 @@ publishing {
 		maven(MavenPublication) {
 			groupId = groupName
 			artifactId = pluginName
-			version = pluginVersion
+			version = project.version
 			from components.java
+		}
+	}
+	repositories {
+		maven {
+			name = "XNAT_Artifactory"
+			url = project.version.toString().endsWith("-SNAPSHOT")
+				? "https://nrgxnat.jfrog.io/nrgxnat/libs-snapshot-local"
+				: "https://nrgxnat.jfrog.io/nrgxnat/libs-release-local"
+			// CI injects ORG_GRADLE_PROJECT_artifactoryUser/Token env vars (Gradle maps
+			// these to project properties). Local devs can set artifactoryUser/Token in
+			// ~/.gradle/gradle.properties. Mirrors monorepo's buildSrc convention.
+			credentials {
+				username = (project.findProperty("artifactoryUser")  ?: System.getenv("ARTIFACTORY_USER"))  ?: ""
+				password = (project.findProperty("artifactoryToken") ?: System.getenv("ARTIFACTORY_TOKEN")) ?: ""
+			}
 		}
 	}
 }
@@ -82,7 +127,7 @@ publishing {
 idea {
     module {
         inheritOutputDirs = false
-        outputDir = compileJava.destinationDir
-        testOutputDir = compileTestJava.destinationDir
+        outputDir = compileJava.destinationDirectory.asFile.get()
+        testOutputDir = compileTestJava.destinationDirectory.asFile.get()
     }
 }
